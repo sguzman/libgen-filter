@@ -24,7 +24,7 @@
     'use strict';
 
     // Only inject UI if we are on a page with search results
-    if (document.querySelectorAll('table.c').length === 0) return;
+    if (!window.location.search.includes('req=')) return;
 
     // 1. Create UI
     const container = document.createElement('div');
@@ -80,21 +80,39 @@
         const langFilter = langInput.value.toLowerCase();
         const extFilter = extInput.value.toLowerCase();
 
-        // The search table is usually the table with class "c"
-        const tables = document.querySelectorAll('table.c');
-        if (tables.length === 0) return;
+        // Find the main search results table
+        let mainTable = null;
+        let titleCol = 2, langCol = 6, extCol = 8; // Defaults
+
+        const tables = document.querySelectorAll('table');
+        for (const t of tables) {
+            const firstRow = t.querySelector('tr');
+            if (firstRow && firstRow.innerText.toLowerCase().includes('extension')) {
+                mainTable = t;
+                const headers = Array.from(firstRow.querySelectorAll('th, td')).map(cell => cell.innerText.toLowerCase());
+                if (headers.length > 0) {
+                    const extIdx = headers.findIndex(h => h.includes('extension') || h.includes('ext'));
+                    const langIdx = headers.findIndex(h => h.includes('language') || h.includes('lang'));
+                    const titleIdx = headers.findIndex(h => h.includes('title'));
+                    if (extIdx !== -1) extCol = extIdx;
+                    if (langIdx !== -1) langCol = langIdx;
+                    if (titleIdx !== -1) titleCol = titleIdx;
+                }
+                break;
+            }
+        }
+
+        if (!mainTable) return;
         
-        const mainTable = tables[0];
         const rows = Array.from(mainTable.querySelectorAll('tr')).slice(1); // skip header row
 
         rows.forEach(row => {
             const cells = row.querySelectorAll('td');
-            if (cells.length < 9) return;
+            if (cells.length <= Math.max(titleCol, langCol, extCol)) return;
 
-            // Columns typically: 0:ID, 1:Author, 2:Title, 3:Publisher, 4:Year, 5:Pages, 6:Language, 7:Size, 8:Extension
-            const title = cells[2].innerText.toLowerCase();
-            const lang = cells[6].innerText.toLowerCase();
-            const ext = cells[8].innerText.toLowerCase();
+            const title = cells[titleCol] ? cells[titleCol].innerText.toLowerCase() : '';
+            const lang = cells[langCol] ? cells[langCol].innerText.toLowerCase() : '';
+            const ext = cells[extCol] ? cells[extCol].innerText.toLowerCase() : '';
 
             let show = true;
             if (titleFilter && !title.includes(titleFilter)) show = false;
