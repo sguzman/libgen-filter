@@ -4,15 +4,27 @@
 // @version      1.0
 // @description  Filter libgen search results by extension, language, title, etc.
 // @author       You
-// @match        *://libgen.is/search.php*
-// @match        *://libgen.rs/search.php*
-// @match        *://libgen.st/search.php*
-// @match        *://gen.lib.rus.ec/search.php*
+// @match        *://libgen.is/*
+// @match        *://*.libgen.is/*
+// @match        *://libgen.rs/*
+// @match        *://*.libgen.rs/*
+// @match        *://libgen.st/*
+// @match        *://*.libgen.st/*
+// @match        *://libgen.li/*
+// @match        *://*.libgen.li/*
+// @match        *://libgen.gs/*
+// @match        *://*.libgen.gs/*
+// @match        *://libgen.lc/*
+// @match        *://*.libgen.lc/*
+// @match        *://gen.lib.rus.ec/*
 // @grant        none
 // ==/UserScript==
 
 (function() {
     'use strict';
+
+    // Only inject UI if we are on a page with search results
+    if (document.querySelectorAll('table.c').length === 0) return;
 
     // 1. Create UI
     const container = document.createElement('div');
